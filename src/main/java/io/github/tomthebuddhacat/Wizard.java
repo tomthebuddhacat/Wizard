@@ -6,12 +6,12 @@ import io.github.tomthebuddhacat.commands.DummyCommand;
 import io.github.tomthebuddhacat.gui.GUIListener;
 import io.github.tomthebuddhacat.gui.GUIManager;
 import io.github.tomthebuddhacat.listener.PlayerEventListener;
-import io.github.tomthebuddhacat.repository.DatabaseRepository;
 import io.github.tomthebuddhacat.repository.PlayerRepository;
 import io.github.tomthebuddhacat.repository.ReportRepository;
 import io.github.tomthebuddhacat.service.DatabaseService;
 import io.github.tomthebuddhacat.service.ItemService;
 import io.github.tomthebuddhacat.service.LogService;
+import io.github.tomthebuddhacat.service.RankService;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,8 +23,6 @@ import java.util.List;
 public final class Wizard extends JavaPlugin {
 
     private DatabaseService databaseService;
-
-    private DatabaseRepository databaseRepository;
 
     private ReportRepository reportRepository;
 
@@ -40,14 +38,18 @@ public final class Wizard extends JavaPlugin {
 
     private ItemService itemService;
 
+    private RankService rankService;
+
     @Override
     public void onEnable() {
 
         saveDefaultConfig();
 
-        establishDatabaseConnection();
+        establishDatabaseServiceConnection();
 
-        establishDatabase();
+        createDatabase();
+
+        establishDatabaseConnection();
 
         registerAllRepositories();
 
@@ -68,11 +70,39 @@ public final class Wizard extends JavaPlugin {
         LogService.info("Successfully disabled the plugin.");
     }
 
-    private void establishDatabaseConnection() {
+    private void establishDatabaseServiceConnection() {
 
         databaseService = new DatabaseService();
 
         try {
+
+            databaseService.setupConnection(
+                    getConfig().getString("mysqlDatabase.hostAddress"),
+                    getConfig().getInt("mysqlDatabase.hostPort"),
+                    getConfig().getString("mysqlDatabase.userName"),
+                    getConfig().getString("mysqlDatabase.hostPassword")
+            );
+
+        } catch (SQLException sqlException) {
+            LogService.error("Failed to establish connection to the database service.", sqlException);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+    }
+
+    private void createDatabase() {
+
+        try {
+            databaseService.createDatabase(this.getConfig().getString("mysqlDatabase.databaseName"));
+        } catch (SQLException sqlException) {
+            LogService.error("Failed to create database.", sqlException);
+        }
+    }
+
+    private void establishDatabaseConnection() {
+
+        try {
+
             databaseService.setupConnection(
                     getConfig().getString("mysqlDatabase.hostAddress"),
                     getConfig().getInt("mysqlDatabase.hostPort"),
@@ -80,6 +110,7 @@ public final class Wizard extends JavaPlugin {
                     getConfig().getString("mysqlDatabase.userName"),
                     getConfig().getString("mysqlDatabase.hostPassword")
             );
+
         } catch (SQLException sqlException) {
             LogService.error("Failed to establish connection to the database.", sqlException);
             getServer().getPluginManager().disablePlugin(this);
@@ -87,16 +118,12 @@ public final class Wizard extends JavaPlugin {
         }
     }
 
-    private void establishDatabase() {
-
-        databaseRepository = new DatabaseRepository(this, databaseService);
-
-        databaseRepository.createDatabase();
-    }
-
-    public void establishService() {
+    private void establishService() {
 
         itemService = new ItemService();
+
+        rankService = new RankService();
+        rankService.registerRanks();
     }
 
     private void registerCommands() {
@@ -105,7 +132,7 @@ public final class Wizard extends JavaPlugin {
 
         List<BaseCommand> commands = new ArrayList<>();
 
-        commands.add(new DummyCommand(reportRepository, playerRepository, itemService, guiManager, this));
+        commands.add(new DummyCommand(reportRepository, playerRepository, itemService, rankService, guiManager, this));
 
         int registeredCommands = 0;
 
@@ -131,7 +158,7 @@ public final class Wizard extends JavaPlugin {
         guiManager = new GUIManager();
         guiListener = new GUIListener(guiManager);
 
-        playerEventListener = new PlayerEventListener(playerRepository);
+        playerEventListener = new PlayerEventListener(playerRepository, rankService);
 
         List<Listener> listOfListeners = new ArrayList<>();
 

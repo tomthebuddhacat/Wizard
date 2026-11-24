@@ -32,8 +32,9 @@ public class PlayerRepository {
         String statement = """
         CREATE TABLE IF NOT EXISTS `%s`.playerInformation(
             id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            player_name VARCHAR(36) NOT NULL UNIQUE,
             player_uuid VARCHAR(36) NOT NULL UNIQUE,
-            player_rank VARCHAR(36),
+            player_rank VARCHAR(36) NOT NULL DEFAULT 'DEFAULT',
             player_first_join_timestamp TIMESTAMP,
             player_last_login_timestamp TIMESTAMP
         )
@@ -51,10 +52,11 @@ public class PlayerRepository {
 
         String statement = """
         INSERT INTO playerInformation(
+        player_name,                              
         player_uuid, 
         player_first_join_timestamp,
         player_last_login_timestamp
-        ) VALUES (?, ?, ?)
+        ) VALUES (?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
         player_last_login_timestamp = VALUES(
         player_last_login_timestamp
@@ -63,9 +65,10 @@ public class PlayerRepository {
 
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
 
-            preparedStatement.setString(1, player.getUniqueId().toString());
-            preparedStatement.setTimestamp(2, timestamp);
+            preparedStatement.setString(1, player.getName());
+            preparedStatement.setString(2, player.getUniqueId().toString());
             preparedStatement.setTimestamp(3, timestamp);
+            preparedStatement.setTimestamp(4, timestamp);
 
             preparedStatement.executeUpdate();
         } catch (SQLException sqlException) {
@@ -76,7 +79,7 @@ public class PlayerRepository {
     public List<PlayerRecord> getAllInformation() {
 
         String statement = """
-        SELECT player_uuid, player_rank, player_first_join_timestamp, player_last_login_timestamp 
+        SELECT player_name, player_uuid, player_rank, player_first_join_timestamp, player_last_login_timestamp 
         FROM playerInformation
         ORDER BY id DESC
         """;
@@ -87,10 +90,11 @@ public class PlayerRepository {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
 
-                if (resultSet.next()) {
+                while (resultSet.next()) {
                     playerRecord.add(new PlayerRecord(
-                            UUID.fromString(resultSet.getString("player_uuid")),
+                            resultSet.getString("player_name"),
                             resultSet.getString("player_rank"),
+                            UUID.fromString(resultSet.getString("player_uuid")),
                             resultSet.getTimestamp("player_first_join_timestamp"),
                             resultSet.getTimestamp("player_last_login_timestamp")
                     ));
@@ -100,5 +104,54 @@ public class PlayerRepository {
             LogService.error("Failed to retrieve player information.", sqlException);
         }
         return playerRecord;
+    }
+
+    public void updatePlayerRank(String rankName, UUID uuid) {
+
+        String statement = """
+        UPDATE playerInformation
+        SET player_rank = ?
+        WHERE player_uuid = ?
+        """;
+
+        try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
+
+            preparedStatement.setString(1, rankName);
+            preparedStatement.setString(2, uuid.toString());
+
+            int successfulUpdatedRows = preparedStatement.executeUpdate();
+
+            if (successfulUpdatedRows == 0) {
+                LogService.warning("No rank with the name " + rankName + " was found. Unable to update player rank for " + uuid + ".");
+            }
+
+        } catch (SQLException sqlException) {
+            LogService.error("Failed to update player rank.", sqlException);
+        }
+    }
+
+    public String getPlayerRank(UUID uuid) {
+
+        String statement = """
+        SELECT player_name, player_rank
+        FROM playerInformation
+        WHERE player_uuid = ?
+        """;
+
+        try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
+
+            preparedStatement.setString(1, uuid.toString());
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+
+                if (resultSet.next()) {
+                    return resultSet.getString("player_rank");
+                }
+            }
+        } catch (SQLException sqlException) {
+            LogService.error("Failed to retrieve rank information.", sqlException);
+        }
+
+        return "DEFAULT";
     }
 }

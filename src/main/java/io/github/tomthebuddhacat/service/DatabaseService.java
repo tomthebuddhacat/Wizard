@@ -4,12 +4,43 @@ import lombok.Getter;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 @Getter
 public class DatabaseService {
 
     private Connection connection;
+
+    public void setupConnection(
+            String hostAddress,
+            int hostPort,
+            String userName,
+            String databasePassword
+    ) throws SQLException {
+
+        String connectionUrl = "jdbc:mysql://" + hostAddress + ":" + hostPort + "/";
+
+        connection = DriverManager.getConnection(
+                connectionUrl,
+                userName,
+                databasePassword
+        );
+    }
+
+    public void createDatabase(String databaseName) throws SQLException {
+
+        String statement = """
+        CREATE DATABASE IF NOT EXISTS `%s`
+        """.replace("%s", databaseName);
+
+        try (PreparedStatement preparedStatement = this.connection.prepareStatement(statement)) {
+
+            preparedStatement.executeUpdate();
+        }
+
+        LogService.info("Successfully created database " + databaseName);
+    }
 
     public void setupConnection(
             String hostAddress,
@@ -27,9 +58,8 @@ public class DatabaseService {
                 databasePassword
         );
 
-        LogService.info("Successfully connected to MySQL database.");
+        LogService.info("Successfully established connection to MySQL.");
     }
-
     public void disbandConnection() {
 
         if (connection != null) {

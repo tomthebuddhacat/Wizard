@@ -1,5 +1,6 @@
-package io.github.tomthebuddhacat.gui.impl;
+package io.github.tomthebuddhacat.gui.impl.test;
 
+import com.cryptomorin.xseries.XMaterial;
 import io.github.tomthebuddhacat.Wizard;
 import io.github.tomthebuddhacat.gui.InventoryButton;
 import io.github.tomthebuddhacat.gui.InventoryGUI;
@@ -9,7 +10,6 @@ import io.github.tomthebuddhacat.service.ItemService;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -19,6 +19,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
+
+// 39, 41
 
 public class TestReportGUI extends InventoryGUI {
 
@@ -30,6 +32,12 @@ public class TestReportGUI extends InventoryGUI {
 
     private final Wizard plugin;
 
+    private final int[] borderSlots = {
+            0, 1, 2, 3, 4, 5, 6, 7, 8,
+            9, 18, 27, 36, 37, 38, 39, 40,
+            41, 42, 43, 44, 17, 26, 35
+    };
+
     public TestReportGUI(ReportRepository reportRepository, ItemService itemService, Wizard plugin) {
         this.reportRepository = reportRepository;
         this.itemService = itemService;
@@ -38,7 +46,7 @@ public class TestReportGUI extends InventoryGUI {
 
     @Override
     protected Inventory createInventory() {
-        return Bukkit.createInventory(null, 3 * 9, MiniMessage.miniMessage().deserialize("<gray>Report Information</gray>"));
+        return Bukkit.createInventory(null, 45, MiniMessage.miniMessage().deserialize("Report Information"));
     }
 
     @Override
@@ -48,8 +56,8 @@ public class TestReportGUI extends InventoryGUI {
 
         if (reportRecord == null || reportRecord.isEmpty()) {
 
-                this.addButton(13, this.createReportButton(itemService.createItem(
-                                Material.BARRIER,
+                this.addButton(22, this.createReportButton(itemService.createItem(
+                                XMaterial.BARRIER.parseMaterial(),
                                 miniMessage.deserialize("<red><italic:false>No Reports</red>"),
                                 List.of(
                                         Component.empty(),
@@ -59,16 +67,22 @@ public class TestReportGUI extends InventoryGUI {
                         -1
                 ));
 
+            this.decorate(borderSlots, XMaterial.BLACK_STAINED_GLASS_PANE.parseItem());
+
             super.decorate(player);
 
             return;
         }
 
+        int slot = 0;
+
         for (int i = 0; i < reportRecord.size(); i++) {
 
-            this.addButton(i, this.createReportButton(itemService.createItem(
-                    Material.BOOK,
-                    miniMessage.deserialize("<gray><italic:false>Report #" + i + "</gray>"),
+            slot = getAvailableSlot(slot);
+
+            this.addButton(slot, this.createReportButton(itemService.createItem(
+                    XMaterial.BOOK.parseMaterial(),
+                    miniMessage.deserialize("<red><italic:false>Report #" + (reportRecord.get(i).reportId()) + "</red>"),
                     List.of(
                     Component.empty(),
                     miniMessage.deserialize("<gray><italic:false>Player Name:</gray> " + "<white><italic:false>" + reportRecord.get(i).playerName() + "</white>"),
@@ -76,14 +90,20 @@ public class TestReportGUI extends InventoryGUI {
                     miniMessage.deserialize("<gray><italic:false>Reported At:</gray> " + "<white><italic:false>" + reportRecord.get(i).reportedTimeStamp() + "</white>"),
                     miniMessage.deserialize("<gray><italic:false>Reported Reason:</gray> " + "<white><italic:false>" + reportRecord.get(i).reportReason() + "</white>"),
                     Component.empty(),
-                    miniMessage.deserialize("<gray><italic:false>Right click to Reject Report</gray>"),
-                    miniMessage.deserialize("<gray><italic:false>Left click to Accept Report</gray>")
+                     miniMessage.deserialize("<yellow><italic:false>Left click to</yellow> <italic:false><green><bold>ACCEPT</green> <yellow>report</yellow>"),
+                     miniMessage.deserialize("<yellow><italic:false>Right click to</yellow> <italic:false><red><bold>REJECT</red> <yellow>report</yellow>")
                     )
             ),
             "there_are_reports",
+
             reportRecord.get(i).reportId()
             ));
+
+            slot++;
         }
+
+        this.decorate(borderSlots, XMaterial.BLACK_STAINED_GLASS_PANE.parseItem());
+
         super.decorate(player);
     }
 
@@ -127,5 +147,26 @@ public class TestReportGUI extends InventoryGUI {
                         player.sendMessage(miniMessage.deserialize("<yellow>You have successfully</yellow> <green><bold>ACCEPTED</bold></green> <yellow>a report with ID </yellow><green>" + reportId + ".</green>"));
                     }
                 });
+    }
+
+    private int getAvailableSlot(int slots) {
+
+        boolean isBorder;
+
+        do {
+            isBorder = false;
+
+            for (int borderSlots : borderSlots) {
+
+                if (borderSlots == slots) {
+                    isBorder = true;
+                    slots++;
+                    break;
+                }
+            }
+
+        } while (isBorder);
+
+        return slots;
     }
 }

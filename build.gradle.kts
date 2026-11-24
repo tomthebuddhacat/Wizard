@@ -20,7 +20,7 @@ dependencies {
 
     implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
 
-    implementation("io.lettuce:lettuce-core:7.9.0.RELEASE")
+    implementation("com.github.cryptomorin:XSeries:14.0.0")
 }
 
 java {
@@ -43,6 +43,7 @@ tasks {
     shadowJar {
         relocate("co.aikar.commands", "io.github.tomthebuddhacat.libs.acf")
         relocate("co.aikar.locales", "io.github.tomthebuddhacat.libs.locales")
+        relocate("com.cryptomorin.xseries", "io.github.tomthebuddhacat.utils")
 
         archiveClassifier.set("")
     }

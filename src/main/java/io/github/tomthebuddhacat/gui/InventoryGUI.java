@@ -1,5 +1,6 @@
 package io.github.tomthebuddhacat.gui;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -26,6 +27,12 @@ public abstract class InventoryGUI implements InventoryHandler {
 
     public void addButton(int slot, InventoryButton button) {
         this.buttonMap.put(slot, button);
+    }
+
+    public void decorate(int[] slots, ItemStack itemStack) {
+        for (int slot : slots) {
+            this.inventory.setItem(slot, itemStack);
+        }
     }
 
     public void decorate(Player player) {

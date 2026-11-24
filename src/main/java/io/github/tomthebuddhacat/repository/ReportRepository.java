@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ReportRepository {
 
@@ -33,14 +34,13 @@ public class ReportRepository {
         CREATE TABLE IF NOT EXISTS `%s`.playerReports(
             id BIGINT AUTO_INCREMENT PRIMARY KEY,
             player_name VARCHAR(36) NOT NULL,
+            player_uuid VARCHAR(36) NOT NULL,
             reported_player_name VARCHAR(36) NOT NULL,
-            reported_reason VARCHAR(15) NOT NULL,
+            reported_reason VARCHAR(36) NOT NULL,
             report_time TIMESTAMP,
             report_status ENUM(
             'PENDING', 'ACCEPTED', 'REJECTED' 
-            ) NOT NULL DEFAULT 'PENDING',
-            reviewed_by_player_name VARCHAR(36),
-            reviewed_time TIMESTAMP
+            ) NOT NULL DEFAULT 'PENDING'
         )
         """.replace("%s", databaseName);
 
@@ -125,7 +125,8 @@ public class ReportRepository {
     public boolean deleteDummyReport(int id) {
 
         String statement = """
-        DELETE FROM playerReports WHERE id = ?
+        DELETE FROM playerReports 
+        WHERE id = ?
         """;
 
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
