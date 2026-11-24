@@ -1,6 +1,7 @@
 package io.github.tomthebuddhacat.repository;
 
 import io.github.tomthebuddhacat.Wizard;
+import io.github.tomthebuddhacat.enums.ReportStatus;
 import io.github.tomthebuddhacat.record.ReportRecord;
 import io.github.tomthebuddhacat.service.DatabaseService;
 import io.github.tomthebuddhacat.service.LogService;
@@ -35,7 +36,9 @@ public class ReportRepository {
             reported_player_name VARCHAR(36) NOT NULL,
             reported_reason VARCHAR(15) NOT NULL,
             report_time TIMESTAMP,
-            report_status VARCHAR(10),
+            report_status ENUM(
+            'PENDING', 'ACCEPTED', 'REJECTED' 
+            ) NOT NULL DEFAULT 'PENDING',
             reviewed_by_player_name VARCHAR(36),
             reviewed_time TIMESTAMP
         )
@@ -70,7 +73,7 @@ public class ReportRepository {
             preparedStatement.setString(2, reportedPlayerName);
             preparedStatement.setString(3, reportedReason);
             preparedStatement.setTimestamp(4, Timestamp.from(Instant.now()));
-            preparedStatement.setString(5, "PENDING");
+            preparedStatement.setString(5, ReportStatus.PENDING.name());
 
             preparedStatement.executeUpdate();
             return true;
@@ -78,6 +81,44 @@ public class ReportRepository {
         } catch (SQLException sqlException) {
             LogService.error("Failed to create dummy report data.", sqlException);
             return false;
+        }
+    }
+
+    public void updatePlayerReportStatusAsReject(int reportId) {
+
+        String statement = """
+        UPDATE playerReports
+        SET report_status = ?
+        WHERE id = ?
+        """;
+
+        try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
+
+            preparedStatement.setString(1, ReportStatus.REJECTED.name());
+            preparedStatement.setInt(2, reportId);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException sqlException) {
+            LogService.error("Failed to accept player report.", sqlException);
+        }
+    }
+
+    public void updatePlayerReportStatusAsAccepted(int reportId) {
+
+        String statement = """
+        UPDATE playerReports
+        SET report_status = ?
+        WHERE id = ?
+        """;
+
+        try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
+
+            preparedStatement.setString(1, ReportStatus.ACCEPTED.name());
+            preparedStatement.setInt(2, reportId);
+
+            preparedStatement.executeUpdate();
+        } catch (SQLException sqlException) {
+            LogService.error("Failed to accept player report.", sqlException);
         }
     }
 
@@ -102,7 +143,7 @@ public class ReportRepository {
     public List<ReportRecord> getAllDummyReports() {
 
         String statement = """
-        SELECT player_name, reported_player_name, report_time 
+        SELECT id, player_name, reported_player_name, report_time, reported_reason 
         FROM playerReports
         ORDER BY id DESC
         """;
@@ -113,11 +154,13 @@ public class ReportRepository {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
 
-                if (resultSet.next()) {
+                while (resultSet.next()) {
                     playerReports.add(new ReportRecord(
+                            resultSet.getInt("id"),
                             resultSet.getString("player_name"),
                             resultSet.getString("reported_player_name"),
-                            resultSet.getTimestamp("report_time")
+                            resultSet.getTimestamp("report_time"),
+                            resultSet.getString("reported_reason")
                     ));
                 }
             }

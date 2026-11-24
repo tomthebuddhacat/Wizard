@@ -23,7 +23,7 @@ public class DatabaseRepository {
         String databaseName = plugin.getConfig().getString("mysqlDatabase.databaseName");
 
         String statement = """
-        CREATE DATABASE IF NOT EXIST `%s`
+        CREATE DATABASE IF NOT EXISTS `%s`
         """.replace("%s", databaseName);
 
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {

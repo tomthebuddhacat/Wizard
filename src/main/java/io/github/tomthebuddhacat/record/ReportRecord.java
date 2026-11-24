@@ -2,4 +2,4 @@ package io.github.tomthebuddhacat.record;
 
 import java.sql.Timestamp;
 
-public record ReportRecord(String playerName, String reportedPlayerName, Timestamp reportedTimeStamp) {}
+public record ReportRecord(int reportId, String playerName, String reportedPlayerName, Timestamp reportedTimeStamp, String reportReason) {}
