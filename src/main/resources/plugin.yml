@@ -1,0 +1,6 @@
+name: Wizard
+version: '${version}'
+
+main: io.github.tomthebuddhacat.Wizard
+api-version: '26.1.2'
+load: POSTWORLD

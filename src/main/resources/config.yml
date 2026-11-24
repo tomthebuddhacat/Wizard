@@ -1,0 +1,6 @@
+mysqlDatabase:
+  hostAddress: "localhost"
+  hostPort: 3306
+  databaseName: ""
+  userName: ""
+  hostPassword: ""
