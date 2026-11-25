@@ -2,9 +2,12 @@ package io.github.tomthebuddhacat.repository;
 
 import io.github.tomthebuddhacat.Wizard;
 import io.github.tomthebuddhacat.enums.ReportStatus;
+import io.github.tomthebuddhacat.player.NetworkPlayer;
+import io.github.tomthebuddhacat.player.OfflineNetworkPlayer;
 import io.github.tomthebuddhacat.record.ReportRecord;
 import io.github.tomthebuddhacat.service.DatabaseService;
 import io.github.tomthebuddhacat.service.LogService;
+import org.bukkit.Bukkit;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,7 +16,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class ReportRepository {
 
@@ -26,15 +28,14 @@ public class ReportRepository {
         this.plugin = plugin;
     }
 
-    public void createTable() {
+    public void createReportsTable() {
 
         String databaseName = plugin.getConfig().getString("mysqlDatabase.databaseName");
 
         String statement = """
         CREATE TABLE IF NOT EXISTS `%s`.playerReports(
-            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+            report_id BIGINT AUTO_INCREMENT PRIMARY KEY,
             player_name VARCHAR(36) NOT NULL,
-            player_uuid VARCHAR(36) NOT NULL,
             reported_player_name VARCHAR(36) NOT NULL,
             reported_reason VARCHAR(36) NOT NULL,
             report_time TIMESTAMP,
@@ -53,24 +54,24 @@ public class ReportRepository {
     }
 
     public boolean createDummyReportData(
-            String playerName,
-            String reportedPlayerName,
+            NetworkPlayer networkPlayer,
+            NetworkPlayer reportedPlayerName,
             String reportedReason) {
 
         String statement = """
-                INSERT INTO playerReports(
-                player_name,
-                reported_player_name,
-                reported_reason,
-                report_time,
-                report_status
-                ) VALUES (?, ?, ?, ?, ?)
+        INSERT INTO playerReports(
+        player_name,
+        reported_player_name,
+        reported_reason,
+        report_time,
+        report_status
+        ) VALUES (?, ?, ?, ?, ?)
         """;
 
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
 
-            preparedStatement.setString(1, playerName);
-            preparedStatement.setString(2, reportedPlayerName);
+            preparedStatement.setString(1, networkPlayer.getPlayerName());
+            preparedStatement.setString(2, reportedPlayerName.getPlayerName());
             preparedStatement.setString(3, reportedReason);
             preparedStatement.setTimestamp(4, Timestamp.from(Instant.now()));
             preparedStatement.setString(5, ReportStatus.PENDING.name());
@@ -89,7 +90,7 @@ public class ReportRepository {
         String statement = """
         UPDATE playerReports
         SET report_status = ?
-        WHERE id = ?
+        WHERE report_id = ?
         """;
 
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
@@ -108,7 +109,7 @@ public class ReportRepository {
         String statement = """
         UPDATE playerReports
         SET report_status = ?
-        WHERE id = ?
+        WHERE report_id = ?
         """;
 
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
@@ -126,7 +127,7 @@ public class ReportRepository {
 
         String statement = """
         DELETE FROM playerReports 
-        WHERE id = ?
+        WHERE report_id = ?
         """;
 
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
@@ -144,9 +145,9 @@ public class ReportRepository {
     public List<ReportRecord> getAllDummyReports() {
 
         String statement = """
-        SELECT id, player_name, reported_player_name, report_time, reported_reason 
+        SELECT report_id, player_name, reported_player_name, report_time, reported_reason 
         FROM playerReports
-        ORDER BY id DESC
+        WHERE report_status = 'PENDING'
         """;
 
         List<ReportRecord> playerReports = new ArrayList<>();
@@ -157,9 +158,9 @@ public class ReportRepository {
 
                 while (resultSet.next()) {
                     playerReports.add(new ReportRecord(
-                            resultSet.getInt("id"),
-                            resultSet.getString("player_name"),
-                            resultSet.getString("reported_player_name"),
+                            resultSet.getInt("report_id"),
+                            new OfflineNetworkPlayer(Bukkit.getOfflinePlayer(resultSet.getString("player_name"))),
+                            new OfflineNetworkPlayer(Bukkit.getOfflinePlayer(resultSet.getString("reported_player_name"))),
                             resultSet.getTimestamp("report_time"),
                             resultSet.getString("reported_reason")
                     ));

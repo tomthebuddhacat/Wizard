@@ -26,4 +26,19 @@
 - Added border items to GUIs.
 - Set up the basic structure for the rank system.
 - Deleted `DatabaseRepository.java` class.
-----
+
+---
+
+---
+
+# Version 0.0.3, Nov 25, 2026.
+
+- Reports are no longer deleted from the database regardless of if the status is `REJECTED` or
+  `ACCEPTED`
+- Created objects called `NetworkPlayer` which will be used for commands and guis.
+- Fixed memory address being displayed in `ReportsGUI.java`.
+- Refractored some parts of `PlayerReportsGUI.java` into `ReportType.java`.
+- Created the basics of `README.md`.
+- Removed Test GUIs.
+- Improved the rank system.
+---

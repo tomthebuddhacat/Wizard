@@ -6,12 +6,18 @@
 
 - [x] Implement the Reports feature.
 - [x] Add support for XSeries.
-- [ ] Create a `README.md`.
-- [ ] Create a `CHANGELOG.md`.
+- [X] Implement the Tab feature.
+- [x] Create a `CHANGELOG.md`.
+- [x] Create a `README.md`.
+- [x] Create a `NOTES.md`.
 - [ ] Create a `CONTRIBUTING.md`.
+- [ ] Implement the Scoreboard feature.
+- [ ] Implement Chat-Snapshots feature.
 - [ ] Add support for multiple Minecraft versions.
 - [ ] Add support for Redis.
+- [ ] Implement the MOTD feature.
+- [ ] Implement the NPCs feature.
 - [ ] Implement the Ranks feature.
 
 ---
-Last Updated: November 24th, 2026
+Last Updated: November 25th, 2026

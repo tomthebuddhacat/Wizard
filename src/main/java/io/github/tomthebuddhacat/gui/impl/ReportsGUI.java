@@ -1,4 +1,4 @@
-package io.github.tomthebuddhacat.gui.impl.test;
+package io.github.tomthebuddhacat.gui.impl;
 
 import com.cryptomorin.xseries.XMaterial;
 import io.github.tomthebuddhacat.Wizard;
@@ -20,9 +20,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 
-// 39, 41
-
-public class TestReportGUI extends InventoryGUI {
+public class ReportsGUI extends InventoryGUI {
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
@@ -38,7 +36,7 @@ public class TestReportGUI extends InventoryGUI {
             41, 42, 43, 44, 17, 26, 35
     };
 
-    public TestReportGUI(ReportRepository reportRepository, ItemService itemService, Wizard plugin) {
+    public ReportsGUI(ReportRepository reportRepository, ItemService itemService, Wizard plugin) {
         this.reportRepository = reportRepository;
         this.itemService = itemService;
         this.plugin = plugin;
@@ -56,17 +54,6 @@ public class TestReportGUI extends InventoryGUI {
 
         if (reportRecord == null || reportRecord.isEmpty()) {
 
-                this.addButton(22, this.createReportButton(itemService.createItem(
-                                XMaterial.BARRIER.parseMaterial(),
-                                miniMessage.deserialize("<red><italic:false>No Reports</red>"),
-                                List.of(
-                                        Component.empty(),
-                                        miniMessage.deserialize("<gray><italic:false>No players haven't been reported yet.</gray>")
-                                )),
-                        "there_are_no_reports",
-                        -1
-                ));
-
             this.decorate(borderSlots, XMaterial.BLACK_STAINED_GLASS_PANE.parseItem());
 
             super.decorate(player);
@@ -81,22 +68,22 @@ public class TestReportGUI extends InventoryGUI {
             slot = getAvailableSlot(slot);
 
             this.addButton(slot, this.createReportButton(itemService.createItem(
-                    XMaterial.BOOK.parseMaterial(),
-                    miniMessage.deserialize("<red><italic:false>Report #" + (reportRecord.get(i).reportId()) + "</red>"),
-                    List.of(
-                    Component.empty(),
-                    miniMessage.deserialize("<gray><italic:false>Player Name:</gray> " + "<white><italic:false>" + reportRecord.get(i).playerName() + "</white>"),
-                    miniMessage.deserialize("<gray><italic:false>Reported Player Name:</gray> " + "<white><italic:false>" +reportRecord.get(i).reportedPlayerName() + "</white>"),
-                    miniMessage.deserialize("<gray><italic:false>Reported At:</gray> " + "<white><italic:false>" + reportRecord.get(i).reportedTimeStamp() + "</white>"),
-                    miniMessage.deserialize("<gray><italic:false>Reported Reason:</gray> " + "<white><italic:false>" + reportRecord.get(i).reportReason() + "</white>"),
-                    Component.empty(),
-                     miniMessage.deserialize("<yellow><italic:false>Left click to</yellow> <italic:false><green><bold>ACCEPT</green> <yellow>report</yellow>"),
-                     miniMessage.deserialize("<yellow><italic:false>Right click to</yellow> <italic:false><red><bold>REJECT</red> <yellow>report</yellow>")
-                    )
-            ),
-            "there_are_reports",
+                            XMaterial.BOOK.parseMaterial(),
+                            miniMessage.deserialize("<red><italic:false>Report #" + (reportRecord.get(i).reportId()) + "</red>"),
+                            List.of(
+                                    Component.empty(),
+                                    miniMessage.deserialize("<gray><italic:false>Player Name:</gray> " + "<white><italic:false>" + reportRecord.get(i).playerName().getPlayerName() + "</white>"),
+                                    miniMessage.deserialize("<gray><italic:false>Reported Player Name:</gray> " + "<white><italic:false>" +reportRecord.get(i).reportedPlayerName().getPlayerName() + "</white>"),
+                                    miniMessage.deserialize("<gray><italic:false>Reported At:</gray> " + "<white><italic:false>" + reportRecord.get(i).reportedTimeStamp() + "</white>"),
+                                    miniMessage.deserialize("<gray><italic:false>Reported Reason:</gray> " + "<white><italic:false>" + reportRecord.get(i).reportReason() + "</white>"),
+                                    Component.empty(),
+                                    miniMessage.deserialize("<yellow><italic:false>Left click to</yellow> <italic:false><green><bold>ACCEPT</green> <yellow>report</yellow>"),
+                                    miniMessage.deserialize("<yellow><italic:false>Right click to</yellow> <italic:false><red><bold>REJECT</red> <yellow>report</yellow>")
+                            )
+                    ),
+                    "there_are_reports",
 
-            reportRecord.get(i).reportId()
+                    reportRecord.get(i).reportId()
             ));
 
             slot++;
@@ -129,11 +116,8 @@ public class TestReportGUI extends InventoryGUI {
                         return;
                     }
 
-                    if ("there_are_no_reports".equals(id)) return;
-
                     if (event.getClick() == ClickType.RIGHT) {
                         reportRepository.updatePlayerReportStatusAsReject(reportId);
-                        reportRepository.deleteDummyReport(reportId);
                         event.setCurrentItem(null);
 
                         player.sendMessage(miniMessage.deserialize("<yellow>You have successfully</yellow> <red><bold>REJECTED</bold></red> <yellow>a report with ID </yellow><red>" + reportId + ".</red>"));
@@ -141,7 +125,6 @@ public class TestReportGUI extends InventoryGUI {
 
                     if (event.getClick() == ClickType.LEFT) {
                         reportRepository.updatePlayerReportStatusAsAccepted(reportId);
-                        reportRepository.deleteDummyReport(reportId);
                         event.setCurrentItem(null);
 
                         player.sendMessage(miniMessage.deserialize("<yellow>You have successfully</yellow> <green><bold>ACCEPTED</bold></green> <yellow>a report with ID </yellow><green>" + reportId + ".</green>"));
@@ -170,3 +153,4 @@ public class TestReportGUI extends InventoryGUI {
         return slots;
     }
 }
+

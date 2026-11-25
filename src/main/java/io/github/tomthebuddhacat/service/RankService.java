@@ -1,34 +1,62 @@
 package io.github.tomthebuddhacat.service;
 
 import io.github.tomthebuddhacat.record.RankRecord;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import io.github.tomthebuddhacat.repository.RankRepository;
+import net.kyori.adventure.text.Component;
 
 import java.awt.*;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 public class RankService {
 
-    // Implemented for testing purpose only, will be removed later
-
-    private final MiniMessage miniMessage = MiniMessage.miniMessage();
-
     private final Map<String, RankRecord> rankMap = new HashMap<>();
 
-    public RankService() {}
+    private final Map<UUID, RankRecord> cache = new HashMap<>();
+
+    private final RankRepository rankRepository;
+
+    public RankService(RankRepository rankRepository) {
+        this.rankRepository = rankRepository;
+    }
 
     public void registerRanks() {
 
-        rankMap.put(
-                "DEFAULT", new RankRecord("DEFAULT", miniMessage.deserialize("<gray>[Default]</gray>")
-        ));
+        Map<String, RankRecord> allRanks = rankRepository.getAllRanks();
 
-        rankMap.put(
-                "ADMIN", new RankRecord("ADMIN", miniMessage.deserialize("<red>[ADMIN]</red>")
-        ));
+        rankMap.clear();
+
+        for (Map.Entry<String, RankRecord> entrySet : allRanks.entrySet()) {
+            rankMap.put(entrySet.getKey().toUpperCase(Locale.ROOT), entrySet.getValue());
+        }
     }
 
-    public RankRecord getRank(String rankName) {
-        return rankMap.getOrDefault(rankName.toUpperCase(), rankMap.get("DEFAULT"));
+    public RankRecord getRankName(String rankName) {
+        return rankMap.get(rankName.toUpperCase(Locale.ROOT));
+    }
+
+    public void setPlayerRank(String rankName, UUID playerUUID) {
+
+        RankRecord rankRecord = getRankName(rankName);
+
+        if (rankRecord != null) {
+            cache.put(playerUUID, rankRecord);
+        } else {
+            cache.remove(playerUUID);
+        }
+    }
+
+    public RankRecord getPlayerRank(UUID playerUUID) {
+        return cache.get(playerUUID);
+    }
+
+    public int getRankWeight(String rankName) {
+        return getRankName(rankName).rankWeight();
+    }
+
+    public Component getRankPrefix(String rankName) {
+        return getRankName(rankName).rankPrefix();
     }
 }

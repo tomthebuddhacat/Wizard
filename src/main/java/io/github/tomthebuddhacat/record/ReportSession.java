@@ -1,5 +1,5 @@
 package io.github.tomthebuddhacat.record;
 
-import org.bukkit.entity.Player;
+import io.github.tomthebuddhacat.player.NetworkPlayer;
 
-public record ReportSession(Player targetPlayer) { }
+public record ReportSession(NetworkPlayer networkPlayer) { }

@@ -1,21 +1,17 @@
 package io.github.tomthebuddhacat.commands;
 
 import co.aikar.commands.BaseCommand;
-import co.aikar.commands.CommandIssuer;
 import co.aikar.commands.annotation.*;
-import io.github.tomthebuddhacat.Wizard;
-import io.github.tomthebuddhacat.gui.GUIManager;
-import io.github.tomthebuddhacat.gui.impl.test.TestPlayerReportGUI;
-import io.github.tomthebuddhacat.gui.impl.test.TestReportGUI;
+import io.github.tomthebuddhacat.player.NetworkPlayer;
+import io.github.tomthebuddhacat.player.OfflineNetworkPlayer;
 import io.github.tomthebuddhacat.record.PlayerRecord;
-import io.github.tomthebuddhacat.record.ReportSession;
+import io.github.tomthebuddhacat.record.RankRecord;
 import io.github.tomthebuddhacat.repository.PlayerRepository;
-import io.github.tomthebuddhacat.repository.ReportRepository;
-import io.github.tomthebuddhacat.service.ItemService;
+import io.github.tomthebuddhacat.repository.RankRepository;
+import io.github.tomthebuddhacat.service.LogService;
 import io.github.tomthebuddhacat.service.RankService;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -24,76 +20,72 @@ import java.util.List;
 @CommandAlias("dummy")
 public class DummyCommand extends BaseCommand {
 
-    private final ReportRepository reportRepository;
-
     private final PlayerRepository playerRepository;
 
-    private final ItemService itemService;
+    private final RankRepository rankRepository;
 
     private final RankService rankService;
 
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
-    private final GUIManager guiManager;
-
-    private final Wizard plugin;
-
     @Default
     public void onDefault(Player player) {
 
         player.sendMessage(miniMessage.deserialize("<red><bold>---------------------------------</bold></red>"));
-        player.sendMessage(miniMessage.deserialize("<red>/dummy gui report -</red> <white>Display's all active player reports.</white>"));
-        player.sendMessage(miniMessage.deserialize("<red>/dummy player information -</red> <white>Retrieve information about a player.</white>"));
+        player.sendMessage(miniMessage.deserialize("<red>/dummy playerInfo -</red> <white>Retrieve information about a player.</white>"));
         player.sendMessage(miniMessage.deserialize("<red><bold>---------------------------------</bold></red>"));
 
     }
 
-    @Subcommand("gui report")
+    @Subcommand("playerInfo")
     @CommandPermission("wizard.command.dummy")
-    public void onGUI(Player player){
-
-        guiManager.openGUI(new TestReportGUI(reportRepository, itemService, plugin), player);
-    }
-
-    @Subcommand("gui player report")
-    @CommandPermission("wizard.command.dummy")
-    public void onReportGUI(
-            Player player,
-            @Name("targetPlayer") Player targetPlayer) {
-
-        ReportSession reportSession = new ReportSession(targetPlayer);
-
-        guiManager.openGUI(new TestPlayerReportGUI(reportRepository, itemService, reportSession, plugin), player);
-    }
-
-
-    @Subcommand("player information")
-    @CommandPermission("wizard.command.dummy")
+    @Syntax("<targetPlayer>")
     public void onPlayerInformation(
             Player player,
-            @Name("targetPlayer") String playerName) {
+            @Single Player targetPlayer) {
 
         List<PlayerRecord> playerRecord = playerRepository.getAllInformation();
 
         for (PlayerRecord listOfPlayerRecords : playerRecord) {
             player.sendMessage(miniMessage.deserialize("<red><bold>---------------------------------</bold></red>"));
-            player.sendMessage(miniMessage.deserialize("<red>Player Name: </red> <white>" + playerName + "</white>"));
+            player.sendMessage(miniMessage.deserialize("<red>Player Name: </red> <white>" + targetPlayer.getName() + "</white>"));
             player.sendMessage(miniMessage.deserialize("<red>Player UUID: </red> <white>" + listOfPlayerRecords.playerUUID() + "</white>"));
             player.sendMessage(miniMessage.deserialize("<red>Player Rank: </red> <white>" + listOfPlayerRecords.rankName() + "</white>"));
+            player.sendMessage(miniMessage.deserialize("<red>Punishment Points: </red> <white>" + listOfPlayerRecords.playerPunishmentPoints() + "</white>"));
             player.sendMessage(miniMessage.deserialize("<red>First Login: </red> <white>" + listOfPlayerRecords.firstLoginTimeStamp() + "</white>"));
             player.sendMessage(miniMessage.deserialize("<red>Last Login: </red> <white>" + listOfPlayerRecords.lastLoginTimeStamp() + "</white>"));
             player.sendMessage(miniMessage.deserialize("<red><bold>---------------------------------</bold></red>"));
         }
     }
 
+    @Subcommand("create rank")
+    @CommandPermission("wizard.command.dummy")
+    @Syntax("<rankName>")
+    public void onRankCreate(
+            Player player,
+            String rankName,
+            String rankPrefix,
+            String tabNameColor,
+            String rankColor,
+            int rankWeight) {
+
+        rankRepository.createRank(rankName, rankPrefix, tabNameColor, rankColor, rankWeight);
+
+        player.sendMessage(miniMessage.deserialize("<green>You have successfully created a rank!</green>"));
+    }
+
     @Subcommand("grant rank")
     @CommandPermission("wizard.command.dummy")
+    @Syntax("<targetPlayer> <rankName>")
     public void onRankGrant(
-            CommandIssuer commandIssuer,
-            @Name("targetPlayer") Player targetPlayer,
-            @Name("rankName") String rankName) {
+            Player player,
+            NetworkPlayer targetPlayer,
+            String rankName) {
 
-        playerRepository.updatePlayerRank(rankName, targetPlayer.getUniqueId());
+        RankRecord rankRecord = rankService.getRankName(rankName);
 
+        playerRepository.setPlayerRank(rankRecord.rankName(), targetPlayer);
+
+        player.sendMessage(miniMessage.deserialize("<green>You have successfully updated</green> <yellow>" + targetPlayer.getPlayerName() + "'s<yellow> <green>rank to</green> <yellow>" + rankRecord.rankName() + ".</yellow>"));
     }
 }
