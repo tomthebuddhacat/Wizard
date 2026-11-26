@@ -34,6 +34,11 @@ public class RankService {
     }
 
     public RankRecord getRankName(String rankName) {
+
+        if (rankName == null) {
+            return null;
+        }
+
         return rankMap.get(rankName.toUpperCase(Locale.ROOT));
     }
 
@@ -53,10 +58,14 @@ public class RankService {
     }
 
     public int getRankWeight(String rankName) {
-        return getRankName(rankName).rankWeight();
+        RankRecord rankRecord = getRankName(rankName);
+
+        return rankRecord != null ? rankRecord.rankWeight() : 0;
     }
 
     public Component getRankPrefix(String rankName) {
-        return getRankName(rankName).rankPrefix();
+        RankRecord rankRecord = getRankName(rankName);
+
+        return rankRecord != null ? rankRecord.rankPrefix() : Component.empty();
     }
 }

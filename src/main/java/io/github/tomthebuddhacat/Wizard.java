@@ -1,26 +1,17 @@
 package io.github.tomthebuddhacat;
 
-import co.aikar.commands.BaseCommand;
-import co.aikar.commands.PaperCommandManager;
 import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.PacketEventsAPI;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
-import io.github.tomthebuddhacat.commands.DummyCommand;
-import io.github.tomthebuddhacat.commands.ReportCommand;
-import io.github.tomthebuddhacat.commands.ReportsCommand;
+import io.github.tomthebuddhacat.command.CommandManager;
+import io.github.tomthebuddhacat.command.commands.TestCommand;
 import io.github.tomthebuddhacat.gui.GUIListener;
 import io.github.tomthebuddhacat.gui.GUIManager;
 import io.github.tomthebuddhacat.listener.PlayerEventListener;
-import io.github.tomthebuddhacat.player.NetworkPlayer;
-import io.github.tomthebuddhacat.player.OfflineNetworkPlayer;
-import io.github.tomthebuddhacat.player.OnlineNetworkPlayer;
 import io.github.tomthebuddhacat.repository.PlayerRepository;
 import io.github.tomthebuddhacat.repository.RankRepository;
 import io.github.tomthebuddhacat.repository.ReportRepository;
 import io.github.tomthebuddhacat.service.*;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -38,7 +29,7 @@ public final class Wizard extends JavaPlugin {
 
     private RankRepository rankRepository;
 
-    private PaperCommandManager commandManager;
+    private CommandManager commandManager;
 
     private GUIManager guiManager;
 
@@ -148,53 +139,15 @@ public final class Wizard extends JavaPlugin {
         rankService.registerRanks();
 
         tabListService = new TabListService(this, rankService);
+
+        commandManager = new CommandManager();
     }
 
     private void registerCommands() {
 
-        commandManager = new PaperCommandManager(this);
+        new TestCommand().register(rankService);
 
-        commandManager.getCommandContexts().registerContext(OnlineNetworkPlayer.class, bukkitCommandExecutionContext -> {
-
-            String playerName = bukkitCommandExecutionContext.popFirstArg();
-
-            Player targetPlayer = Bukkit.getPlayerExact(playerName);
-
-            return new OnlineNetworkPlayer(targetPlayer);
-        });
-
-        commandManager.getCommandContexts().registerContext(OfflineNetworkPlayer.class, bukkitCommandExecutionContext -> {
-
-            String playerName = bukkitCommandExecutionContext.popFirstArg();
-
-            OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
-
-            return new OfflineNetworkPlayer(offlinePlayer);
-        });
-
-        commandManager.getCommandContexts().registerContext(NetworkPlayer.class, bukkitCommandExecutionContext -> {
-
-            String playerName = bukkitCommandExecutionContext.popFirstArg();
-
-            Player targetPlayer = Bukkit.getPlayerExact(playerName);
-
-            return new OfflineNetworkPlayer(targetPlayer);
-        });
-
-        List<BaseCommand> commands = new ArrayList<>();
-
-        commands.add(new DummyCommand(playerRepository, rankRepository, rankService));
-        commands.add(new ReportCommand(guiManager, reportRepository, itemService, this));
-        commands.add(new ReportsCommand(guiManager, reportRepository, itemService, this));
-
-        int registeredCommands = 0;
-
-        for (BaseCommand baseCommand : commands) {
-            commandManager.registerCommand(baseCommand);
-            registeredCommands++;
-        }
-
-        LogService.info("A total number of " + registeredCommands + " commands have been registered.");
+        LogService.info("Successfully registered all the commands.");
     }
 
     private void registerAllRepositories() {
@@ -207,6 +160,7 @@ public final class Wizard extends JavaPlugin {
 
         rankRepository = new RankRepository(databaseService, this);
         rankRepository.createRankTable();
+        rankRepository.createDefaultRank();
     }
 
     private void registerAllListeners() {

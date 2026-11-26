@@ -36,3 +36,16 @@ The compiled JAR will be generated in the `build/libs` directory.
 
 
 > **Note:** On Windows, use `gradlew.bat` instead of `./gradlew`.
+
+
+---
+
+### APIs & Libraries Used
+
+[![Spectaculation](https://img.shields.io/badge/GitHub-Spectaculation-blue?logo=github)](https://github.com/ajaxvp/Spectaculation)
+[![PacketEventsAPI](https://img.shields.io/badge/GitHub-PacketEventsAPI-blue?logo=github)](https://github.com/retrooper/packetevents)
+[![GUIAPI](https://img.shields.io/badge/GitHub-GUI-blue?logo=github)](https://github.com/Flo0/GUITutorial)
+
+Wizard was developed using the following APIs and libraries. Go check them out.
+
+---

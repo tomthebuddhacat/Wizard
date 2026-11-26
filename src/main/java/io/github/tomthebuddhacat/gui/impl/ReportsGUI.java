@@ -72,8 +72,8 @@ public class ReportsGUI extends InventoryGUI {
                             miniMessage.deserialize("<red><italic:false>Report #" + (reportRecord.get(i).reportId()) + "</red>"),
                             List.of(
                                     Component.empty(),
-                                    miniMessage.deserialize("<gray><italic:false>Player Name:</gray> " + "<white><italic:false>" + reportRecord.get(i).playerName().getPlayerName() + "</white>"),
-                                    miniMessage.deserialize("<gray><italic:false>Reported Player Name:</gray> " + "<white><italic:false>" +reportRecord.get(i).reportedPlayerName().getPlayerName() + "</white>"),
+                                    miniMessage.deserialize("<gray><italic:false>Player Name:</gray> " + "<white><italic:false>" + reportRecord.get(i).player().getName() + "</white>"),
+                                    miniMessage.deserialize("<gray><italic:false>Reported Player Name:</gray> " + "<white><italic:false>" +reportRecord.get(i).player().getName() + "</white>"),
                                     miniMessage.deserialize("<gray><italic:false>Reported At:</gray> " + "<white><italic:false>" + reportRecord.get(i).reportedTimeStamp() + "</white>"),
                                     miniMessage.deserialize("<gray><italic:false>Reported Reason:</gray> " + "<white><italic:false>" + reportRecord.get(i).reportReason() + "</white>"),
                                     Component.empty(),
@@ -108,6 +108,13 @@ public class ReportsGUI extends InventoryGUI {
 
                 .consumer(event -> {
                     Player player = (Player) event.getWhoClicked();
+
+                    ItemStack currentItem = event.getCurrentItem();
+
+                    if (currentItem == null) {
+                        event.setCancelled(true);
+                        return;
+                    }
 
                     String id = event.getCurrentItem().getItemMeta().getPersistentDataContainer().get(namespacedKey, PersistentDataType.STRING);
 
@@ -153,4 +160,3 @@ public class ReportsGUI extends InventoryGUI {
         return slots;
     }
 }
-

@@ -41,4 +41,19 @@
 - Created the basics of `README.md`.
 - Removed Test GUIs.
 - Improved the rank system.
+
+---
+
+---
+
+# Version 0.0.4, Nov 26, 2026.
+
+- Deleted `TODO.md`, we will be using GitHub PRs & Projects instead.
+- Added the rank permission system.
+- Removed an unused table from `RankRepository.java`.
+- Planning to split config sections into their own files in the future.
+- Added some null safety (probably missed a few spots).
+- Replaced the old command system with a new one inspired by the Spectaculation project.
+- Fixed NPEs in `ReportsGUI.java` and `PlayerReportsGUI.java` when there are no items to display.
+- Added default rank setup on startup and fixed new player rank assignment.
 ---

@@ -6,7 +6,6 @@ import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfoUpdate;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerListHeaderAndFooter;
 import io.github.tomthebuddhacat.Wizard;
-import io.github.tomthebuddhacat.player.NetworkPlayer;
 import io.github.tomthebuddhacat.record.RankRecord;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -28,9 +27,7 @@ public class TabListService {
         this.rankService = rankService;
     }
 
-    public void createFooterAndHeader(NetworkPlayer networkPlayer) {
-
-        Player player = Bukkit.getPlayer(networkPlayer.getPlayerName());
+    public void createFooterAndHeader(Player player) {
 
         Component tabHeader = miniMessage.deserialize("<aqua>You are playing on </aqua><bold><yellow>LOCALHOST</yellow></bold>");
 
@@ -42,9 +39,7 @@ public class TabListService {
         PacketEvents.getAPI().getPlayerManager().getUser(player).sendPacket(headerAndFooter);
     }
 
-    public void updatePlayerDisplayTab(NetworkPlayer networkPlayer) {
-
-        Player player = Bukkit.getPlayer(networkPlayer.getPlayerName());
+    public void updatePlayerDisplayTab(Player player) {
 
         UserProfile userProfile = PacketEvents.getAPI().getPlayerManager().getUser(player).getProfile();
 

@@ -1,12 +1,12 @@
 package io.github.tomthebuddhacat.repository;
 
 import io.github.tomthebuddhacat.Wizard;
-import io.github.tomthebuddhacat.player.NetworkPlayer;
-import io.github.tomthebuddhacat.player.OfflineNetworkPlayer;
 import io.github.tomthebuddhacat.record.PlayerRecord;
 import io.github.tomthebuddhacat.service.DatabaseService;
 import io.github.tomthebuddhacat.service.LogService;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -37,7 +37,6 @@ public class PlayerRepository {
             player_name VARCHAR(36) NOT NULL UNIQUE,
             player_uuid VARCHAR(36) NOT NULL UNIQUE,
             player_rank VARCHAR(36) NOT NULL,
-            player_punishment_points BIGINT NOT NULL DEFAULT 0,
             player_first_join_timestamp TIMESTAMP,
             player_last_login_timestamp TIMESTAMP
         )
@@ -51,13 +50,13 @@ public class PlayerRepository {
         }
     }
 
-    public void createPlayer(NetworkPlayer networkPlayer, Timestamp timestamp) {
+    public void createPlayer(Player player, Timestamp timestamp) {
 
         String statement = """
         INSERT INTO playerInformation(
         player_name,                              
         player_uuid, 
-        player_punishment_points,                              
+        player_rank,
         player_first_join_timestamp,
         player_last_login_timestamp
         ) VALUES (?, ?, ?, ?, ?)
@@ -69,9 +68,9 @@ public class PlayerRepository {
 
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
 
-            preparedStatement.setString(1, networkPlayer.getPlayerName());
-            preparedStatement.setString(2, networkPlayer.getPlayerUUID().toString());
-            preparedStatement.setInt(3, 0);
+            preparedStatement.setString(1, player.getName());
+            preparedStatement.setString(2, player.getUniqueId().toString());
+            preparedStatement.setString(3, "DEFAULT");
             preparedStatement.setTimestamp(4, timestamp);
             preparedStatement.setTimestamp(5, timestamp);
 
@@ -81,7 +80,7 @@ public class PlayerRepository {
         }
     }
 
-    public void setPlayerRank(String rankName, NetworkPlayer networkPlayer) {
+    public void setPlayerRank(String rankName, OfflinePlayer offlinePlayer) {
 
         String statement = """
         UPDATE playerInformation
@@ -92,7 +91,7 @@ public class PlayerRepository {
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
 
             preparedStatement.setString(1, rankName);
-            preparedStatement.setString(2, networkPlayer.getPlayerUUID().toString());
+            preparedStatement.setString(2, offlinePlayer.getPlayer().getUniqueId().toString());
 
             preparedStatement.executeUpdate();
         } catch (SQLException sqlException) {
@@ -100,7 +99,7 @@ public class PlayerRepository {
         }
     }
 
-    public String getPlayerRank(NetworkPlayer networkPlayer) {
+    public String getPlayerRank(OfflinePlayer offlinePlayer) {
 
         String statement = """
         SELECT player_rank 
@@ -110,7 +109,7 @@ public class PlayerRepository {
 
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
 
-            preparedStatement.setString(1, networkPlayer.getPlayerUUID().toString());
+            preparedStatement.setString(1, offlinePlayer.getPlayer().getUniqueId().toString());
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
 
@@ -121,13 +120,13 @@ public class PlayerRepository {
         } catch (SQLException sqlException) {
             LogService.error("Failed to retrieve player rank information.", sqlException);
         }
-        return "DEFAULT";
+        return "";
     }
 
     public List<PlayerRecord> getAllInformation() {
 
         String statement = """
-        SELECT player_name, player_uuid, player_rank, player_punishment_points, player_first_join_timestamp, player_last_login_timestamp 
+        SELECT player_name, player_uuid, player_rank, player_first_join_timestamp, player_last_login_timestamp 
         FROM playerInformation
         """;
 
@@ -140,10 +139,9 @@ public class PlayerRepository {
                 while (resultSet.next()) {
                     playerRecord.add(
                             new PlayerRecord(
-                            new OfflineNetworkPlayer(Bukkit.getOfflinePlayer(resultSet.getString("player_name"))),
+                            Bukkit.getPlayer(resultSet.getString("player_name")),
                             resultSet.getString("player_rank"),
                             UUID.fromString(resultSet.getString("player_uuid")),
-                            resultSet.getInt("player_punishment_points"),
                             resultSet.getTimestamp("player_first_join_timestamp"),
                             resultSet.getTimestamp("player_last_login_timestamp")
                     ));

@@ -5,7 +5,6 @@ import io.github.tomthebuddhacat.Wizard;
 import io.github.tomthebuddhacat.enums.ReportType;
 import io.github.tomthebuddhacat.gui.InventoryButton;
 import io.github.tomthebuddhacat.gui.InventoryGUI;
-import io.github.tomthebuddhacat.player.OnlineNetworkPlayer;
 import io.github.tomthebuddhacat.record.ReportSession;
 import io.github.tomthebuddhacat.repository.ReportRepository;
 import io.github.tomthebuddhacat.service.ItemService;
@@ -61,7 +60,7 @@ public class PlayerReportGUI extends InventoryGUI {
 
         ReportType[] reportTypes = ReportType.values();
 
-        for (int i = 0; i < itemSlots.length; i++) {
+        for (int i = 0; i < reportTypes.length; i++) {
 
             ReportType reportType = reportTypes[i];
 
@@ -95,6 +94,13 @@ public class PlayerReportGUI extends InventoryGUI {
                 .consumer(event -> {
                     Player player = (Player) event.getWhoClicked();
 
+                    ItemStack currentItem = event.getCurrentItem();
+
+                    if (currentItem == null) {
+                        event.setCancelled(true);
+                        return;
+                    }
+
                     String id = event.getCurrentItem().getItemMeta().getPersistentDataContainer().get(namespacedKey, PersistentDataType.STRING);
 
                     if (id == null) {
@@ -119,15 +125,15 @@ public class PlayerReportGUI extends InventoryGUI {
                             return;
                         }
 
-                        reportRepository.createDummyReportData(
-                                new OnlineNetworkPlayer(player),
-                                reportSession.networkPlayer(),
+                        reportRepository.createReport(
+                                player,
+                                reportSession.player(),
                                 reportType.getReportReason()
                         );
 
                         event.getInventory().close();
 
-                        player.sendMessage(miniMessage.deserialize("<green>You have successfully reported </green><red>" + reportSession.networkPlayer().getPlayerName() + "</red><green>for</green> <red>" + reportType.getReportReason() + ".</red>"));
+                        player.sendMessage(miniMessage.deserialize("<green>You have successfully reported </green><red>" + reportSession.player().getName() + "</red><green>for</green> <red>" + reportType.getReportReason() + ".</red>"));
                     }
                 });
     }

@@ -19,13 +19,13 @@ dependencies {
 
     implementation("com.mysql:mysql-connector-j:26.10.0")
 
-    implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
-
     implementation("com.github.cryptomorin:XSeries:14.0.0")
 
     implementation("com.github.retrooper:packetevents-spigot:2.14.0")
 
     implementation("com.google.code.gson:gson:2.15.0")
+
+    implementation("io.lettuce:lettuce-core:7.9.0.RELEASE")
 }
 
 java {

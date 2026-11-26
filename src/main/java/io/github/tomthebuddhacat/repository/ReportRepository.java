@@ -2,12 +2,11 @@ package io.github.tomthebuddhacat.repository;
 
 import io.github.tomthebuddhacat.Wizard;
 import io.github.tomthebuddhacat.enums.ReportStatus;
-import io.github.tomthebuddhacat.player.NetworkPlayer;
-import io.github.tomthebuddhacat.player.OfflineNetworkPlayer;
 import io.github.tomthebuddhacat.record.ReportRecord;
 import io.github.tomthebuddhacat.service.DatabaseService;
 import io.github.tomthebuddhacat.service.LogService;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -53,9 +52,9 @@ public class ReportRepository {
         }
     }
 
-    public boolean createDummyReportData(
-            NetworkPlayer networkPlayer,
-            NetworkPlayer reportedPlayerName,
+    public boolean createReport(
+            Player player,
+            Player reportedPlayer,
             String reportedReason) {
 
         String statement = """
@@ -70,8 +69,8 @@ public class ReportRepository {
 
         try (PreparedStatement preparedStatement = databaseService.getConnection().prepareStatement(statement)) {
 
-            preparedStatement.setString(1, networkPlayer.getPlayerName());
-            preparedStatement.setString(2, reportedPlayerName.getPlayerName());
+            preparedStatement.setString(1, player.getName());
+            preparedStatement.setString(2, reportedPlayer.getName());
             preparedStatement.setString(3, reportedReason);
             preparedStatement.setTimestamp(4, Timestamp.from(Instant.now()));
             preparedStatement.setString(5, ReportStatus.PENDING.name());
@@ -123,7 +122,7 @@ public class ReportRepository {
         }
     }
 
-    public boolean deleteDummyReport(int id) {
+    public boolean deleteReport(int id) {
 
         String statement = """
         DELETE FROM playerReports 
@@ -159,8 +158,8 @@ public class ReportRepository {
                 while (resultSet.next()) {
                     playerReports.add(new ReportRecord(
                             resultSet.getInt("report_id"),
-                            new OfflineNetworkPlayer(Bukkit.getOfflinePlayer(resultSet.getString("player_name"))),
-                            new OfflineNetworkPlayer(Bukkit.getOfflinePlayer(resultSet.getString("reported_player_name"))),
+                            Bukkit.getPlayer(resultSet.getString("player_name")),
+                            Bukkit.getOfflinePlayer(resultSet.getString("reported_player_name")),
                             resultSet.getTimestamp("report_time"),
                             resultSet.getString("reported_reason")
                     ));

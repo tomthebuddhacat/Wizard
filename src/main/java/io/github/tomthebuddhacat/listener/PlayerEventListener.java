@@ -1,7 +1,6 @@
 package io.github.tomthebuddhacat.listener;
 
 import io.github.tomthebuddhacat.Wizard;
-import io.github.tomthebuddhacat.player.OnlineNetworkPlayer;
 import io.github.tomthebuddhacat.record.RankRecord;
 import io.github.tomthebuddhacat.repository.PlayerRepository;
 import io.github.tomthebuddhacat.service.RankService;
@@ -39,19 +38,19 @@ public class PlayerEventListener implements Listener {
 
         Player player = playerJoinEvent.getPlayer();
 
-        playerRepository.createPlayer(new OnlineNetworkPlayer(player), Timestamp.from(Instant.now()));
+        playerRepository.createPlayer(player, Timestamp.from(Instant.now()));
 
-        String rankName = playerRepository.getPlayerRank(new OnlineNetworkPlayer(player));
+        String rankName = playerRepository.getPlayerRank(player);
 
         rankService.setPlayerRank(rankName, player.getUniqueId());
 
         for (Player onlinePlayers : Bukkit.getOnlinePlayers()) {
 
-            tabListService.createFooterAndHeader(new OnlineNetworkPlayer(onlinePlayers));
+            tabListService.createFooterAndHeader(onlinePlayers);
         }
 
         Bukkit.getScheduler().runTask(plugin, () -> {
-            tabListService.updatePlayerDisplayTab(new OnlineNetworkPlayer(player));
+            tabListService.updatePlayerDisplayTab(player);
         });
     }
 
