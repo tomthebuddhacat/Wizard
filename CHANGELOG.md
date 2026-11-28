@@ -57,3 +57,17 @@
 - Fixed NPEs in `ReportsGUI.java` and `PlayerReportsGUI.java` when there are no items to display.
 - Added default rank setup on startup and fixed new player rank assignment.
 ---
+
+---
+
+# Version 0.0.5, Nov 28, 2026.
+
+- Implemented the scoreboard system.
+- Implemented the tab system.
+- Updated `NOTES.md` with notes about the tab and scoreboard systems.
+- Added a null check in `playerListener` for cases where `tabNameColor` might be null.
+- Added separate configuration files for most services using the Configurate API.
+- Updated `README.md` with a list of all APIs used.
+- Added a way to remove vanilla Minecraft commands through the configuration file. This is mainly because the plugin uses a permission system that doesn't follow Bukkit's.
+- Modularized the project.
+---

@@ -44,7 +44,10 @@ The compiled JAR will be generated in the `build/libs` directory.
 
 [![Spectaculation](https://img.shields.io/badge/GitHub-Spectaculation-blue?logo=github)](https://github.com/ajaxvp/Spectaculation)
 [![PacketEventsAPI](https://img.shields.io/badge/GitHub-PacketEventsAPI-blue?logo=github)](https://github.com/retrooper/packetevents)
-[![GUIAPI](https://img.shields.io/badge/GitHub-GUI-blue?logo=github)](https://github.com/Flo0/GUITutorial)
+[![GUIAPI](https://img.shields.io/badge/GitHub-GUITutorial-blue?logo=github)](https://github.com/Flo0/GUITutorial)
+[![Configurate](https://img.shields.io/badge/GitHub-Configurate-blue?logo=github)](https://github.com/SpongePowered/Configurate)
+[![PaperMC](https://img.shields.io/badge/GitHub-PaperMC-blue?logo=github)](https://github.com/PaperMC/Paper)
+
 
 Wizard was developed using the following APIs and libraries. Go check them out.
 
